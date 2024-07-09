@@ -1,0 +1,23 @@
+root = true
+
+# All files
+[*]
+indent_style = space
+
+# Xml files
+[*.xml]
+indent_size = 2
+
+# C# files
+[*.cs]
+csharp_style_namespace_declarations=file_scoped
+
+# Nullable types
+dotnet_diagnostic.CS8602.severity                          = error
+dotnet_diagnostic.CS8603.severity                          = error
+dotnet_diagnostic.CS8604.severity                          = error
+dotnet_diagnostic.CS8618.severity                          = error
+dotnet_diagnostic.CS8625.severity                          = error
+dotnet_diagnostic.CS8629.severity                          = error
+dotnet_diagnostic.CS8632.severity                          = error
+dotnet_diagnostic.CS8714.severity                          = error
