@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace PageTracker.Api;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public class Program
 {
     public static Task Main(string[] args)
