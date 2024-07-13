@@ -10,7 +10,7 @@ indent_size = 2
 
 # C# files
 [*.cs]
-csharp_style_namespace_declarations=file_scoped
+csharp_style_namespace_declarations = file_scoped
 
 # Nullable types
 dotnet_diagnostic.CS8602.severity                          = error
