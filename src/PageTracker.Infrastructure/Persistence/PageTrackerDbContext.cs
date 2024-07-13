@@ -3,7 +3,7 @@ using Microsoft.Identity.Client;
 
 namespace PageTracker.Infrastructure.Persistence;
 
-public partial class PageTrackerDbContext : DbContext
+internal partial class PageTrackerDbContext : DbContext, IPageTrackerDbContext
 {
     public PageTrackerDbContext(DbContextOptions<PageTrackerDbContext> options)
         : base(options)

@@ -3,7 +3,7 @@ using PageTracker.Domain.Models;
 
 namespace PageTracker.Infrastructure.Persistence;
 
-public partial class PageTrackerDbContext
+internal partial class PageTrackerDbContext
 {
-    public DbSet<ReadingSession> ReadingSessions { get; set; }
+    public virtual DbSet<ReadingSession> ReadingSessions { get; set; }
 }
