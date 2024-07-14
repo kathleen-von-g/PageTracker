@@ -11,9 +11,10 @@ namespace PageTracker.Api.Controllers;
 [ApiController]
 [Route("reading-session")]
 [ApiVersion("1.0")]
-public class ReadingSessionController(ILogger<ReadingSessionController> logger, IReadingSessionService readingSessionService) : ControllerBase
+public class ReadingSessionController(ILogger<ReadingSessionController> logger, IReadingSessionService readingSessionService, TimeProvider timeProvider) : ControllerBase
 {
     private const string RecordPagesError = "Could not record pages";
+    private const string GetPagesError = "Could not retrieve number of pages read today";
 
 
     /// <summary>
@@ -53,6 +54,28 @@ public class ReadingSessionController(ILogger<ReadingSessionController> logger, 
         {
             logger.LogError(ex, RecordPagesError);
             return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError, title: RecordPagesError);
+        }
+    }
+
+    /// <summary>
+    /// Returns the number of pages read today
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="200">The number of pages read today. Will be 0 if no pages were record</response>
+    [HttpGet("pages")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> GetRecordedPages(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var numberOfPages = await readingSessionService.GetNumberOfPagesRead(timeProvider.GetLocalNow());
+            return Ok(numberOfPages);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, GetPagesError);
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError, title: GetPagesError);
         }
     }
 }

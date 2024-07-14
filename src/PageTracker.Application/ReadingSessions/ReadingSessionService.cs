@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PageTracker.Domain.Models;
 using PageTracker.Infrastructure.Persistence;
@@ -11,6 +12,14 @@ namespace PageTracker.Application.ReadingSessions
     public interface IReadingSessionService
     {
         /// <summary>
+        /// Returns the number of pages read on the given day. <br/>
+        /// Given day starts from the 12am on the day provided by the offset timezone. 
+        /// </summary>
+        /// <param name="dateToRetrieve">Date where the pages should be counted on.</param>
+        /// <returns>The total number of pages read</returns>
+        Task<int> GetNumberOfPagesRead(DateTimeOffset dateToRetrieve, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates a reading session where you have read the provided number of pages on the current day
         /// </summary>
         /// <param name="numberOfPages">The number of full pages you've read. Must be 0 or more.</param>
@@ -19,6 +28,18 @@ namespace PageTracker.Application.ReadingSessions
     internal class ReadingSessionService(ILogger<ReadingSessionService> logger, IPageTrackerDbContext context, TimeProvider timeProvider) : IReadingSessionService
     {
         private const int MininumNumberOfPages = 0;
+
+        public async Task<int> GetNumberOfPagesRead(DateTimeOffset dateToRetrieve, CancellationToken cancellationToken = default)
+        {
+            var dayStartInclusive = new DateTimeOffset(dateToRetrieve.Date, dateToRetrieve.Offset);
+            var dayEndExclusive = dayStartInclusive.AddDays(1);
+
+            var readingSessions = await context.ReadingSessions
+                .Where(x => x.DateOfSession >= dayStartInclusive && x.DateOfSession < dayEndExclusive)
+                .ToListAsync(cancellationToken);
+
+            return readingSessions.Sum(x => x.NumberOfPages);
+        }
 
         public async Task<ReadingSession> RecordPages(int numberOfPages, CancellationToken cancellationToken = default)
         {
