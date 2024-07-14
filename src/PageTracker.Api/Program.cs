@@ -18,6 +18,8 @@ public class Program
         {
             options.LowercaseUrls = true;
         });
+        builder.Services.AddSingleton(TimeProvider.System);
+
 
         // Swagger
         builder.Services.AddSwaggerGen(options =>
@@ -48,7 +50,6 @@ public class Program
                 new MediaTypeApiVersionReader("ver") // Version is in the Accept header e.g. application/json;ver=2.0
                 );
         });
-
 
         // Library service collections
         builder.Services.AddPageTrackerContext();
