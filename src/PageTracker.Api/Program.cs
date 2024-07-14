@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Reflection;
 using PageTracker.Infrastructure;
+using PageTracker.Application;
 
 namespace PageTracker.Api;
 
@@ -18,6 +19,8 @@ public class Program
         {
             options.LowercaseUrls = true;
         });
+        builder.Services.AddSingleton(TimeProvider.System);
+
 
         // Swagger
         builder.Services.AddSwaggerGen(options =>
@@ -49,9 +52,9 @@ public class Program
                 );
         });
 
-
         // Library service collections
         builder.Services.AddPageTrackerContext();
+        builder.Services.AddReadingSessions();
 
         var app = builder.Build();
 
