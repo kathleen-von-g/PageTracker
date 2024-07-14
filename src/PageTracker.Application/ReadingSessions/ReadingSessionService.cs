@@ -4,19 +4,22 @@ using PageTracker.Infrastructure.Persistence;
 
 namespace PageTracker.Application.ReadingSessions
 {
+    /// <summary>
+    /// Methods related to recording and managing reading sessions
+    /// </summary>
     public interface IReadingSessionService
     {
         /// <summary>
         /// Creates a reading session where you have read the provided number of pages on the current day
         /// </summary>
         /// <param name="numberOfPages">The number of full pages you've read. Must be 0 or more.</param>
-        Task RecordPages(int numberOfPages, CancellationToken cancellationToken = default);
+        Task<ReadingSession> RecordPages(int numberOfPages, CancellationToken cancellationToken = default);
     }
-    public class ReadingSessionService(ILogger<ReadingSessionService> logger, IPageTrackerDbContext context, TimeProvider timeProvider) : IReadingSessionService
+    internal class ReadingSessionService(ILogger<ReadingSessionService> logger, IPageTrackerDbContext context, TimeProvider timeProvider) : IReadingSessionService
     {
         private const int MininumNumberOfPages = 0;
 
-        public async Task RecordPages(int numberOfPages, CancellationToken cancellationToken = default)
+        public async Task<ReadingSession> RecordPages(int numberOfPages, CancellationToken cancellationToken = default)
         {
             // Validate
             if (numberOfPages < MininumNumberOfPages)
@@ -36,6 +39,7 @@ namespace PageTracker.Application.ReadingSessions
                 // Add reading session
                 context.ReadingSessions.Add(readingSession);
                 await context.SaveChangesAsync(cancellationToken);
+                return readingSession;
             }
             catch (Exception ex)
             {

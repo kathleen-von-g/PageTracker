@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Reflection;
 using PageTracker.Infrastructure;
+using PageTracker.Application;
 
 namespace PageTracker.Api;
 
@@ -53,6 +54,7 @@ public class Program
 
         // Library service collections
         builder.Services.AddPageTrackerContext();
+        builder.Services.AddReadingSessions();
 
         var app = builder.Build();
 
