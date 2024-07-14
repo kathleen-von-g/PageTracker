@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.Logging;
 using PageTracker.Domain.Models;
 using PageTracker.Infrastructure.Persistence;
 
@@ -22,10 +23,7 @@ namespace PageTracker.Application.ReadingSessions
         public async Task<ReadingSession> RecordPages(int numberOfPages, CancellationToken cancellationToken = default)
         {
             // Validate
-            if (numberOfPages < MininumNumberOfPages)
-            {
-                throw new ArgumentException($"Must be greater than {MininumNumberOfPages}", nameof(numberOfPages));
-            }
+            Guard.IsGreaterThanOrEqualTo(numberOfPages, MininumNumberOfPages, nameof(numberOfPages));
 
             // Create reading session
             var readingSession = new ReadingSession
