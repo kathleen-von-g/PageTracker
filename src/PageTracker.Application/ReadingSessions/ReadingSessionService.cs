@@ -38,6 +38,9 @@ namespace PageTracker.Application.ReadingSessions
                 .Where(x => x.DateOfSession >= dayStartInclusive && x.DateOfSession < dayEndExclusive)
                 .ToListAsync(cancellationToken);
 
+            string message = $"{nameof(GetNumberOfPagesRead)} found {readingSessions.Count} reading sessions recorded from {dayStartInclusive} to {dayEndExclusive}.";
+            logger.LogInformation(message);
+
             return readingSessions.Sum(x => x.NumberOfPages);
         }
 
