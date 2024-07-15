@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
+using MockQueryable.NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using PageTracker.Application.ReadingSessions;
 using PageTracker.Application.Tests.Common;
@@ -62,5 +63,110 @@ public class ReadingSessionServiceTests
 
         mockSet.Received(1).Add(Arg.Is<ReadingSession>(r => r.NumberOfPages == numberOfPages && r.DateOfSession == now && r.ID == 0));
         await mockContext.Received(1).SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task GetNumberOfPagesRead_MultipleEntries()
+    {
+        // Arrange
+        var now = DateTimeOffset.Parse("2024-07-11 23:00:00 +10:00");
+        var timeProvider = new FakeTimeProvider(now);
+
+        List<ReadingSession> existingEntries = [
+            new ReadingSession { NumberOfPages = 1, DateOfSession = DateTimeOffset.Parse("2024-07-10 23:00:00 +10:00") }, // Yesterday
+            new ReadingSession { NumberOfPages = 2, DateOfSession = DateTimeOffset.Parse("2024-07-11 8:20:00 +10:00") }, // Today
+            new ReadingSession { NumberOfPages = 4, DateOfSession = DateTimeOffset.Parse("2024-07-11 13:50:00 +10:00") }, // Today
+            new ReadingSession { NumberOfPages = 8, DateOfSession = DateTimeOffset.Parse("2024-07-11 18:36:00 +10:00") }, // Today
+            ];
+
+        var mockSet = existingEntries.AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.ReadingSessions.Returns(mockSet);
+        var service = new ReadingSessionService(_logger, mockContext, timeProvider);
+
+        // Act
+        var numberOfPagesRead = await service.GetNumberOfPagesRead(now);
+
+        // Assert
+        numberOfPagesRead.ShouldBe(14);
+    }
+
+    [Fact]
+    public async Task GetNumberOfPagesRead_12AM_and_Midnight()
+    {
+        var queryDate = DateTimeOffset.Parse("2024-07-11 00:00:00 +10:00");
+        var timeProvider = new FakeTimeProvider(queryDate);
+
+        List<ReadingSession> existingEntries = [
+            new ReadingSession { NumberOfPages = 1, DateOfSession = DateTimeOffset.Parse("2024-07-10 23:59:59 +10:00") }, // Midnight day before
+            new ReadingSession { NumberOfPages = 2, DateOfSession = DateTimeOffset.Parse("2024-07-11 00:00:00 +10:00") }, // 12AM on the day
+            new ReadingSession { NumberOfPages = 4, DateOfSession = DateTimeOffset.Parse("2024-07-11 23:59:59 +10:00") }, // Midnight on the the day
+            new ReadingSession { NumberOfPages = 8, DateOfSession = DateTimeOffset.Parse("2024-07-12 00:00:00 +10:00") }, // 12 AM day after
+            ];
+
+        var mockSet = existingEntries.AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.ReadingSessions.Returns(mockSet);
+        var service = new ReadingSessionService(_logger, mockContext, timeProvider);
+
+        // Act
+        var numberOfPagesRead = await service.GetNumberOfPagesRead(queryDate);
+
+        // Assert
+        numberOfPagesRead.ShouldBe(6);
+    }
+
+    [Fact]
+    public async Task GetNumberOfPagesRead_UseTimeZoneOfTimeProviderLocalNow()
+    {
+        List<ReadingSession> existingEntries = [
+            new ReadingSession { NumberOfPages = 1, DateOfSession = DateTimeOffset.Parse("2024-07-10 13:00:00 +00:00") }, // UTC time (11 pm day before)
+            new ReadingSession { NumberOfPages = 2, DateOfSession = DateTimeOffset.Parse("2024-07-10 22:20:00 +00:00") }, // On the day at 8:20AM
+            new ReadingSession { NumberOfPages = 4, DateOfSession = DateTimeOffset.Parse("2024-07-11 03:50:00 +00:00") }, // On the day at 1:50PM
+            new ReadingSession { NumberOfPages = 8, DateOfSession = DateTimeOffset.Parse("2024-07-11 08:36:00 +00:00") }, // On the day at 6:36PM
+            new ReadingSession { NumberOfPages = 16, DateOfSession = DateTimeOffset.Parse("2024-07-11 15:00:00 +00:00") }, // The day after at 1AM
+            ];
+
+        var mockSet = existingEntries.AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.ReadingSessions.Returns(mockSet);
+        var service = new ReadingSessionService(_logger, mockContext, TimeProvider.System);
+
+        // Act
+        var utcTime = DateTimeOffset.Parse("2024-07-11 01:00:00 +00:00");
+        var numberOfPagesReadUtc = await service.GetNumberOfPagesRead(utcTime);
+
+        var localTime = DateTimeOffset.Parse("2024-07-11 01:00:00 +10:00");
+        var numberOfPagesReadLocal = await service.GetNumberOfPagesRead(localTime);
+
+        // Assert
+        numberOfPagesReadUtc.ShouldBe(28);
+        numberOfPagesReadLocal.ShouldBe(14);
+    }
+
+    [Fact]
+    public async Task GetNumberOfPages_NoEntries_ShouldReturn0()
+    {
+        // Arrange
+        var dateQuery = DateTimeOffset.Parse("2024-07-12 1:00:00 +10:00");
+        var timeProvider = new FakeTimeProvider(dateQuery);
+
+        List<ReadingSession> existingEntries = [
+            new ReadingSession { NumberOfPages = 1, DateOfSession = DateTimeOffset.Parse("2024-07-10 23:00:00 +10:00") }, // Yesterday
+            new ReadingSession { NumberOfPages = 2, DateOfSession = DateTimeOffset.Parse("2024-07-11 8:20:00 +10:00") }, // Today
+            new ReadingSession { NumberOfPages = 4, DateOfSession = DateTimeOffset.Parse("2024-07-11 13:50:00 +10:00") }, // Today
+            new ReadingSession { NumberOfPages = 8, DateOfSession = DateTimeOffset.Parse("2024-07-11 18:36:00 +10:00") }, // Today
+            ];
+
+        var mockSet = existingEntries.AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.ReadingSessions.Returns(mockSet);
+        var service = new ReadingSessionService(_logger, mockContext, timeProvider);
+
+        // Act
+        var numberOfPagesRead = await service.GetNumberOfPagesRead(dateQuery);
+
+        // Assert
+        numberOfPagesRead.ShouldBe(0);
     }
 }
