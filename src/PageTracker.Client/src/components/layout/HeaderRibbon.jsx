@@ -4,9 +4,9 @@ import { Image, Group, Box } from '@mantine/core';
 function HeaderRibbon() {
   return (
     <Group justify="center" grow>
-      <Box bd="1px solid bright" w={600} />
+      <Box bd="1px solid dimmed" w={600} />
       <Image w={40} src={pageTrackerLogo} className="logo" alt="{title} logo" />
-      <Box bd="1px solid bright" w={600} />
+      <Box bd="1px solid dimmed" w={600} />
     </Group>
   )
 }

@@ -1,10 +1,11 @@
+import { Text, Group } from "@mantine/core"
 function Footer() {
 
   return (
-    <div>
+    <Group c="dark.0" p="md">
       <i className="fi fi-rs-book-heart" />
-        <div>Uicons by <a href="https://www.flaticon.com/uicons" title="Flaticon">Flaticon</a></div>
-    </div>
+      <Text fz={12}>Uicons by <a href="https://www.flaticon.com/uicons" title="Flaticon">Flaticon</a></Text>
+    </Group>
   );
 }
 
