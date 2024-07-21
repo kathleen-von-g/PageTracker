@@ -4,6 +4,7 @@ import { env } from 'process';
 import path from 'path';
 import child_process from 'child_process';
 import fs from 'fs';
+import { fileURLToPath, URL } from 'node:url';
 
 const baseFolder =
   env.APPDATA !== undefined && env.APPDATA !== ''
@@ -31,8 +32,13 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
   server: {
-    port: 3433,  // Client port
+    port: 3433,  // Client port,
     https: {
       key: fs.readFileSync(keyFilePath),
       cert: fs.readFileSync(certFilePath),
