@@ -1,10 +1,16 @@
-import { Text, Group } from "@mantine/core"
+import { Group } from "@mantine/core"
+import Copyright from "./Copyright";
+import AttributionUIcons from './AttributionUIcons';
+
 function Footer() {
 
+  const year = new Date().getFullYear();
+
   return (
-    <Group c="dark.0" p="md">
+    <Group c="dark.0" p="md" fz={12}>
       <i className="fi fi-rs-book-heart" />
-      <Text fz={12}>Uicons by <a href="https://www.flaticon.com/uicons" title="Flaticon">Flaticon</a></Text>
+      <Copyright year={year} />
+      <AttributionUIcons />
     </Group>
   );
 }
