@@ -1,10 +1,12 @@
-import pageTrackerLogo from '@/assets/images/book_logo_teal.svg'
+import { Stack, Title } from '@mantine/core';
+import HeaderRibbon from './HeaderRibbon';
 
-function Header() {
+function Header({ title }) {
   return (
-    <div>
-      <h1>PageTracker <img src={pageTrackerLogo} className="logo" alt="PageTracker logo" style={{ maxWidth: "1em" }} /></h1>
-    </div>
+    <Stack align="center" justify="center" gap="xs">
+      <Title order={1} pt="lg">{title}</Title>
+      <HeaderRibbon/>
+    </Stack>
   );
 }
 
