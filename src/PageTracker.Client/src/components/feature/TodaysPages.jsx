@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import TodaysPagesHeading from './TodaysPagesHeading';
+import RecordPagesForm from './RecordPagesForm';
 
 const API_URL = "/api/reading-session/pages";
 
@@ -20,9 +21,21 @@ function TodaysPages() {
       .catch(error => setError(error))
   }
 
+  const handleRecordPages = (data) => {
+    console.log(`Recording ${data.numPages} page/s read`);
+    const parsed = Number.parseInt(data.numPages);
+    fetch(`${API_URL}/${parsed}`,
+      {
+        method: 'POST'
+      })
+      .then(() => fetchNumPagesRead())
+      .catch(error => setError(error))
+  }
+
   return (
     <>
       <TodaysPagesHeading numPagesRead={numPagesRead} error={error} />
+      <RecordPagesForm onSubmit={handleRecordPages} />
     </>
   )
 }

@@ -29,10 +29,6 @@ function App() {
 
         <AppShell.Main>
           <PageLog />
-          <Group>
-            <Button color="warm-red.3"><i className="fi fi-rs-book-heart" style={{ marginRight: "0.75rem" }} /> This is a button</Button>
-            <Button color="teal-blue">Teal button</Button>
-          </Group>
         </AppShell.Main>
 
         <AppShell.Footer bg="dark.6">

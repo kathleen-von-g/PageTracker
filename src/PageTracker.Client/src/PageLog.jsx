@@ -5,8 +5,8 @@ function PageLog() {
 
   return (
     <Center>
-    <Stack align="center" justify="center">
-      <TodaysPages />
+      <Stack align="center" justify="center">
+        <TodaysPages />
       </Stack>
     </Center>
   )
