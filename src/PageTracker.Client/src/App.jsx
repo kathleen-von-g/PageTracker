@@ -1,9 +1,10 @@
 import '@mantine/core/styles.css';
-import { MantineProvider, createTheme, Button,Group } from '@mantine/core';
+import './assets/styles/uicons-regular-straight.css'
+
+import { MantineProvider, createTheme, Button, Group, AppShell } from '@mantine/core';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import PageLog from './PageLog.jsx'
-import { AppShell } from '@mantine/core';
+import PageLog from './PageLog'
 
 const title = "Reading Log";
 const theme = createTheme({
@@ -20,7 +21,7 @@ function App() {
 
   return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
-      <AppShell padding="md" withBorder={false} header={{height: 100}}>
+      <AppShell padding="md" withBorder={false} header={{ height: 100 }} footer={{ height:50}}>
 
         <AppShell.Header padding="md">
           <Header title={title} />
