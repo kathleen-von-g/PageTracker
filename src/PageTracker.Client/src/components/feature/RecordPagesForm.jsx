@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Button, TextInput, Flex } from "@mantine/core";
+import ErrorAlert from '../common/ErrorAlert';
 
 // onSubmit - Function that accepts a numeric text input
-function RecordPagesForm({ onSubmit }) {
+function RecordPagesForm({ onSubmit, error }) {
   const [formData, setFormData] = useState({ numPages: '' });
 
   const handleSubmit = (event) => {
@@ -31,6 +32,8 @@ function RecordPagesForm({ onSubmit }) {
   }
 
   return (
+    <>
+    {error && <ErrorAlert message={error.message} />}
     <form onSubmit={handleSubmit}>
       <Flex justify="center" align="flex-start" direction="row" wrap="wrap" gap="md">
         <TextInput name="numPages" value={formData.numPages} onChange={handleFormChange}
@@ -39,6 +42,7 @@ function RecordPagesForm({ onSubmit }) {
         <Button color="teal-blue" type="submit">Submit</Button>
       </Flex>
     </form>
+    </>
   );
 }
 
