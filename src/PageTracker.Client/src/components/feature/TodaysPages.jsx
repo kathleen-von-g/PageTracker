@@ -22,7 +22,6 @@ function TodaysPages() {
         }
         throw new Error("Could not retrieve the number of pages you've read today.")
       })
-      .then(response => response.text())
       .then(text => setNumPagesRead(text))
       .catch(error => setError(error))
   }

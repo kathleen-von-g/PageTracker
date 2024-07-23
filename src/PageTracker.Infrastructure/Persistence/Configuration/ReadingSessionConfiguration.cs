@@ -8,5 +8,7 @@ public class ReadingSessionConfiguration : IEntityTypeConfiguration<ReadingSessi
     public void Configure(EntityTypeBuilder<ReadingSession> builder)
     {
         builder.HasKey(e => e.ID);
+
+        builder.Property(e => e.PageFinishedOn).HasDefaultValue(1);
     }
 }

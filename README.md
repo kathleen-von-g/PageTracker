@@ -1,5 +1,13 @@
 # Page Tracker
-Helping you read more by tracking how many pages you've read per day
+Helping you read more by tracking how many pages you've read per day.
+
+![](/docs/pages-form-light.png)
+
+## About
+A hobby project using React / .NET Web API / SQL Server.
+
+Using Mantine UI Components library https://mantine.dev/
+
 
 ## Helpful commands
 
