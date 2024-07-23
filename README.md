@@ -8,6 +8,7 @@ A hobby project using React / .NET Web API / SQL Server.
 
 Using Mantine UI Components library https://mantine.dev/
 
+How I'm organising and tracking my own requirements https://kathleen-von-gnielinski.notion.site/Page-Tracker-d39aa2e60d4741be8f99fa3811d92bd3
 
 ## Helpful commands
 
