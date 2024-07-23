@@ -8,7 +8,7 @@ function TodaysPagesHeading({ numPagesRead }) {
       return <h2 style={{ textAlign: "center" }}>One page is still progress!<br />Any more pages?</h2>
     }
     else {
-      return <h2 style={{ textAlign: "center" }}>Nice! You&apos;ve read {numPagesRead} pages today<br />Any more pages?</h2>
+      return <h2 style={{ textAlign: "center" }}>Nice! You&apos;ve read {numPagesRead} pages today.<br />Any more pages?</h2>
     }
   };
 
