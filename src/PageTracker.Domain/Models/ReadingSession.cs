@@ -18,7 +18,7 @@ public class ReadingSession
     /// If I started on page 46 and ended on page 46, I read 0 pages.<br/>
     /// If I started on page 1 and finished on the middle of page 2, then I read 1 FULL page
     /// </remarks>
-    public int NumberOfPages { get; set; }
+    public required int NumberOfPages { get; set; }
 
     /// <summary>
     /// Date and time this reading session was finished with time zone information. <br/>

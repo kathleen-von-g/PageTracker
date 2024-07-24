@@ -36,6 +36,7 @@ namespace PageTracker.Application.ReadingSessions
     internal class ReadingSessionService(ILogger<ReadingSessionService> logger, IPageTrackerDbContext context, TimeProvider timeProvider) : IReadingSessionService
     {
         private const int MininumNumberOfPages = 0;
+        private const int DefaultStartingPage = 1;
 
         public async Task<int> GetNumberOfPagesRead(DateTimeOffset dateToRetrieve, CancellationToken cancellationToken = default)
         {
@@ -52,9 +53,39 @@ namespace PageTracker.Application.ReadingSessions
             return readingSessions.Sum(x => x.NumberOfPages);
         }
 
-        public Task<ReadingSession> RecordFinishedAt(int pageNumber, CancellationToken cancellationToken = default)
+        public async Task<ReadingSession> RecordFinishedAt(int pageNumber, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Guard.IsGreaterThanOrEqualTo(pageNumber, DefaultStartingPage);
+
+            // Fetch the most recent reading session
+            var latestReadingSession = await context.ReadingSessions.OrderByDescending(x => x.DateOfSession).FirstOrDefaultAsync();
+            var previousPageNumber = latestReadingSession?.PageFinishedOn ?? DefaultStartingPage;
+
+            Guard.IsGreaterThanOrEqualTo(pageNumber, previousPageNumber);
+
+            // Calculate the number of read pages
+            int numPagesRead = pageNumber - previousPageNumber;
+
+            // Create the reading session
+            var readingSession = new ReadingSession
+            {
+                NumberOfPages = numPagesRead,
+                PageFinishedOn = pageNumber,
+                DateOfSession = timeProvider.GetLocalNow()
+            };
+
+            try
+            {
+                // Add reading session
+                context.ReadingSessions.Add(readingSession);
+                await context.SaveChangesAsync(cancellationToken);
+                return readingSession;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"{nameof(RecordFinishedAt)}: Error occurred while saving reading session");
+                throw;
+            }
         }
 
         public async Task<ReadingSession> RecordPages(int numberOfPages, CancellationToken cancellationToken = default)
@@ -78,7 +109,7 @@ namespace PageTracker.Application.ReadingSessions
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error occurred while saving reading session");
+                logger.LogError(ex, $"{nameof(RecordPages)}: Error occurred while saving reading session");
                 throw;
             }
         }

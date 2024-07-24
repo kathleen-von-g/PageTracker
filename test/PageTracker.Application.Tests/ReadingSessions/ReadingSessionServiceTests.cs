@@ -8,6 +8,7 @@ using PageTracker.Application.Tests.Common;
 using PageTracker.Common.Extensions;
 using PageTracker.Domain.Models;
 using PageTracker.Infrastructure.Persistence;
+using System;
 using Xunit.Abstractions;
 
 namespace PageTracker.Application.Tests.ReadingSessions;
@@ -193,7 +194,7 @@ public class ReadingSessionServiceTests
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2024-07-12 9:00:00 +10:00"));
         List<ReadingSession> existingEntries = [new ReadingSession { ID = 1, NumberOfPages = 5, PageFinishedOn = 6, DateOfSession = timeProvider.GetLocalNow().AddDays(-1) }];
         var mockContext = GetMockContext(existingEntries);
-        var service = new ReadingSessionService(_logger, mockContext, TimeProvider.System);
+        var service = new ReadingSessionService(_logger, mockContext, timeProvider);
 
         // Act
         var readingSession = await service.RecordFinishedAt(15);
@@ -228,18 +229,69 @@ public class ReadingSessionServiceTests
     {
         // Arrange
         List<ReadingSession> existingEntries = []; // No previous entries
-        var mockContext = GetMockContext(existingEntries);
+        var mockSet = existingEntries.AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.ReadingSessions.Returns(mockSet);
+
+
         var service = new ReadingSessionService(_logger, mockContext, TimeProvider.System);
 
         // Act
         var readingSession1 = await service.RecordFinishedAt(11);
+
+        // Mock the 'Save Changes' by recreating the MockDbSet
+        existingEntries.Add(readingSession1);
+        mockSet = existingEntries.AsQueryable().BuildMockDbSet();
+
         var readingSession2 = await service.RecordFinishedAt(15);
 
         // Assert
         readingSession1.NumberOfPages.ShouldBe(10);
         readingSession1.PageFinishedOn.ShouldBe(11);
+
         readingSession2.NumberOfPages.ShouldBe(4);
         readingSession2.PageFinishedOn.ShouldBe(15);
+    }
+
+    [Fact]
+    public async Task RecordFinishedAt_FinishedOnSamePage_ZeroPages()
+    {
+        // Arrange
+        var now = DateTimeOffset.Parse("2024-07-12 9:00:00 +10:00");
+        var timeProvider = new FakeTimeProvider(now);
+        List<ReadingSession> existingEntries = [
+            new ReadingSession { ID = 1, NumberOfPages = 5, PageFinishedOn = 6, DateOfSession = now.AddDays(-1) }
+            ];
+
+        var mockContext = GetMockContext(existingEntries);
+        var service = new ReadingSessionService(_logger, mockContext, timeProvider);
+
+        // Act
+        var readingSession = await service.RecordFinishedAt(6);
+
+        // Assert
+        readingSession.NumberOfPages.ShouldBe(0);
+        readingSession.PageFinishedOn.ShouldBe(6);
+        readingSession.DateOfSession.ShouldBe(now);
+    }
+
+    [Fact]
+    public async Task RecordFinishedAt_ThrowsError_PageNumberIsLessThanLastRecorded()
+    {
+        // Arrange
+        List<ReadingSession> existingEntries = [
+            new ReadingSession { ID = 1, NumberOfPages = 5, PageFinishedOn = 6, DateOfSession = DateTime.Now.AddDays(-1) }
+            ];
+
+        var mockContext = GetMockContext(existingEntries);
+        var service = new ReadingSessionService(_logger, mockContext, TimeProvider.System);
+
+        // Act
+        var actualException = await Record.ExceptionAsync(() => service.RecordFinishedAt(5));
+
+        // Assert
+        actualException.ShouldNotBeNull();
+        actualException.ShouldBeAssignableTo<ArgumentException>();
     }
 
     [Fact]
@@ -261,11 +313,11 @@ public class ReadingSessionServiceTests
         _output.WriteLine(readingSession.Serialize());
 
         // Assert
-        readingSession.NumberOfPages.ShouldBe(7);
+        readingSession.NumberOfPages.ShouldBe(8);
         readingSession.PageFinishedOn.ShouldBe(14);
         readingSession.DateOfSession.ShouldBe(now);
 
-        mockSet.Received(1).Add(Arg.Is<ReadingSession>(r => r.NumberOfPages == 7 && r.PageFinishedOn == 14 && r.DateOfSession == now && r.ID == 0));
+        mockSet.Received(1).Add(Arg.Is<ReadingSession>(r => r.NumberOfPages == 8 && r.PageFinishedOn == 14 && r.DateOfSession == now && r.ID == 0));
         await mockContext.Received(1).SaveChangesAsync();
     }
 }
