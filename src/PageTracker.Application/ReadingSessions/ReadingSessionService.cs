@@ -24,7 +24,7 @@ namespace PageTracker.Application.ReadingSessions
         /// the number of pages read since the last recorded session.
         /// </summary>
         /// <param name="pageNumber">The page number the reader was on when they finished their reading session</param>
-        Task<ReadingSession> RecordPageFinishedAt(int pageNumber, CancellationToken cancellationToken);
+        Task<ReadingSession> RecordFinishedAt(int pageNumber, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a reading session where the reader has read the provided number of pages on the current day
@@ -52,7 +52,7 @@ namespace PageTracker.Application.ReadingSessions
             return readingSessions.Sum(x => x.NumberOfPages);
         }
 
-        public Task<ReadingSession> RecordPageFinishedAt(int pageNumber, CancellationToken cancellationToken)
+        public Task<ReadingSession> RecordFinishedAt(int pageNumber, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

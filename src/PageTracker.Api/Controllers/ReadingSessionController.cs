@@ -108,7 +108,7 @@ public class ReadingSessionController(ILogger<ReadingSessionController> logger, 
     {
         try
         {
-            var readingSession = await readingSessionService.RecordPageFinishedAt(pageNumber, cancellationToken);
+            var readingSession = await readingSessionService.RecordFinishedAt(pageNumber, cancellationToken);
             return Created(new Uri(Request.GetEncodedUrl() + "/" + readingSession.ID), readingSession);
         }
         catch (ArgumentException ex)
