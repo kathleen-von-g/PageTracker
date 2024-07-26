@@ -1,19 +1,21 @@
-function TodaysPagesHeading({ numPagesRead }) {
+import { Text } from "@mantine/core";
+
+function TodaysPagesHeading({ todaysPages }) {
 
   const getHeading = (numPagesRead) => {
     if (numPagesRead <= 0) {
-      return <h2>How many pages did you just read?</h2>;
+      return '';
     }
     else if (numPagesRead == 1) {
-      return <h2 style={{ textAlign: "center" }}>One page is still progress!<br />Any more pages?</h2>
+      return "One page is still progress!";
     }
     else {
-      return <h2 style={{ textAlign: "center" }}>Nice! You&apos;ve read {numPagesRead} pages today.<br />Any more pages?</h2>
+      return `Nice! You've read ${numPagesRead} pages today.`;
     }
   };
 
   return (
-    <div>{getHeading(numPagesRead)}</div>
+    <>{todaysPages && <Text ta="center" fw={600} size="xl"> {getHeading(todaysPages)}</Text>}</>
   );
 }
 
