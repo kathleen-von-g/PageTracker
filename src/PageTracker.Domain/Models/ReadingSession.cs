@@ -24,11 +24,11 @@ public class ReadingSession
     /// Date and time this reading session was finished with time zone information. <br/>
     /// By default this is set to the date and time the session was recorded.
     /// </summary>
-    public DateTimeOffset DateOfSession { get; set; }
+    public required DateTimeOffset DateOfSession { get; set; }
 
     /// <summary>
     /// The page number that the reader was on when they finished their reading session<br/>
     /// i.e. "I got up to page 45 today", 45 being the page they finished on
     /// </summary> 
-    public int PageFinishedOn { get; set; }
+    public required int PageFinishedOn { get; set; }
 }

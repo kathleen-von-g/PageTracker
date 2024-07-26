@@ -93,11 +93,17 @@ namespace PageTracker.Application.ReadingSessions
             // Validate
             Guard.IsGreaterThanOrEqualTo(numberOfPages, MininumNumberOfPages, nameof(numberOfPages));
 
+            // Calculate the number of page the reader is now on
+            var latestReadingSession = await context.ReadingSessions.OrderByDescending(x => x.DateOfSession).FirstOrDefaultAsync();
+            var previousPageNumber = latestReadingSession?.PageFinishedOn ?? DefaultStartingPage;
+            var pageFinishedOn = previousPageNumber + numberOfPages;
+
             // Create reading session
             var readingSession = new ReadingSession
             {
                 NumberOfPages = numberOfPages,
-                DateOfSession = timeProvider.GetLocalNow()
+                DateOfSession = timeProvider.GetLocalNow(),
+                PageFinishedOn = pageFinishedOn
             };
 
             try
