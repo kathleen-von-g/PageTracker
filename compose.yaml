@@ -1,0 +1,38 @@
+version: '3.5'
+name: 'pagetracker'
+services:
+  migrations:
+    container_name: service-migrations
+    image: pagetracker-migrations
+    build:
+      context: .
+      dockerfile: ./src/PageTracker.Infrastructure/Dockerfile
+      target: migrations
+    environment:
+      ASPNETCORE_ENVIRONMENT: Container
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    container_name: sqlserver
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 1433:1433
+    hostname:
+      pagetrackersql
+    secrets:
+      - sql-password
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password_123!
+      - MSSQL_PID=Developer
+    volumes:
+      - pagetracker-sql-data:/var/opt/mssql
+
+volumes:
+  pagetracker-sql-data:
+secrets:
+  sql-password:
+    file: secrets/sql-password.txt
+
+

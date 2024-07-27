@@ -19,3 +19,7 @@ Add a migration
 `dotnet ef migrations add {MigrationName} --output-dir ../PageTracker.Infrastructure/Persistence/Migrations --project ../PageTracker.Infrastructure`
 
 `dotnet ef database update` 
+
+Build the migrations docker image from the root of the project
+
+`docker build . -f ./src/PageTracker.Infrastructure/Dockerfile`
