@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PageTracker.Domain.Models;
 
 namespace PageTracker.Infrastructure.Persistence.Configuration;
-public class ReadingSessionConfiguration : IEntityTypeConfiguration<ReadingSession>
+internal class ReadingSessionConfiguration : IEntityTypeConfiguration<ReadingSession>
 {
     public void Configure(EntityTypeBuilder<ReadingSession> builder)
     {
