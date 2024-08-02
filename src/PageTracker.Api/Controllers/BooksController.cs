@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using PageTracker.Application.Books;
 using PageTracker.Common.Exceptions;
@@ -19,7 +20,7 @@ public class BooksController(ILogger<BooksController> logger, IBookService bookS
     /// </summary>
     /// <param name="id">The ID of the book to get</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <response code="200">The requested book</response>
+    /// <response code="200">Returns requested book</response>
     /// <response code="404">Book was not found</response>
     [HttpGet("{id}")]
     [ProducesResponseType<Book>(StatusCodes.Status200OK)]
@@ -49,7 +50,7 @@ public class BooksController(ILogger<BooksController> logger, IBookService bookS
     /// Gets all books
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <response code="200">All books</response>
+    /// <response code="200">Returns all books</response>
     [HttpGet]
     [ProducesResponseType<List<Book>>(StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
@@ -65,6 +66,32 @@ public class BooksController(ILogger<BooksController> logger, IBookService bookS
             logger.LogError(ex, "An uxpected error occured when trying to get all books");
             return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError,
                 title: "An unxpected error occurred when trying to get all books.");
+        }
+    }
+
+    /// <summary>
+    /// Creates a new book
+    /// </summary>
+    /// <param name="book">Details about the book to create. ID and Reading Session values will be ignored.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="201">Sucessfully created a book</response>
+    /// <response code="400">There are validation errors</response>
+    [HttpPost]
+    [ProducesResponseType<Book>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> Create(Book book, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var newBook = await bookService.CreateBook(book, cancellationToken);
+            return Created(new Uri(Request.GetEncodedUrl() + "/" + newBook.ID), newBook);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An uxpected error occured when trying to create the book");
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError,
+                title: "An unxpected error occurred when trying to create this book.");
         }
     }
 

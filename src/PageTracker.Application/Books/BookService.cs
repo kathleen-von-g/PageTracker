@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CommunityToolkit.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PageTracker.Common.Exceptions;
+using PageTracker.Common.Extensions;
 using PageTracker.Domain.Models;
 using PageTracker.Infrastructure.Persistence;
 
@@ -25,7 +28,6 @@ public interface IBookService
     /// </summary>
     /// <param name="newBook">Details about the new book, with ID set to 0</param>
     /// <returns>The created book</returns>
-    /// <exception cref="InvalidOperationException">The provided book already has an ID</exception>
     Task<Book> CreateBook(Book newBook, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -34,8 +36,7 @@ public interface IBookService
     /// <param name="id">The ID of the book to update</param>
     /// <param name="updatedBook"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException">The provided book's ID doesn't match the given book</exception>
-    /// <exception cref="ArgumentException">If the starting page has been edited once the book has already been started</exception>
+    /// <exception cref="ApplicationException">If the starting page has been edited once the book has already been started</exception>
     /// <exception cref="RecordNotFoundException">The book to update doesn't exist</exception>
     Task<Book> UpdateBook(int id, Book updatedBook, CancellationToken cancellationToken = default);
 
@@ -43,7 +44,7 @@ public interface IBookService
     /// Delete the book with the given id. Books that have already been started cannot be deleted.
     /// </summary>
     /// <param name="id">The ID of the book to delete</param>
-    /// <exception cref="InvalidOperationException">The provided book has already been started</exception>
+    /// <exception cref="ApplicationException">The provided book has already been started</exception>
     /// <exception cref="RecordNotFoundException">The book to delete doesn't exist</exception>
     Task DeleteBook(int id, CancellationToken cancellationToken = default);
 }
@@ -60,10 +61,28 @@ internal class BookService(ILogger<BookService> logger, IPageTrackerDbContext co
         return context.Books.OrderBy(x => x.Author).ThenBy(x => x.Title).ToListAsync(cancellationToken);
     }
 
-    public Task<Book> CreateBook(Book newBook, CancellationToken cancellationToken = default)
+    public async Task<Book> CreateBook(Book newBook, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Creating new book....");
-        throw new NotImplementedException();
+        logger.LogInformation("Creating new book {Book}", newBook.Serialize());
+
+        // Ignore ID
+        newBook.ID = 0;
+
+        // Ignore reading sessions
+        newBook.ReadingSessions.Clear();
+
+        try
+        {
+            context.Books.Add(newBook);
+            await context.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Successfully created book {BookID}", newBook.ID);
+            return newBook;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred when creating book");
+            throw;
+        }
     }
 
     public Task<Book> UpdateBook(int id, Book updatedBook, CancellationToken cancellationToken = default)

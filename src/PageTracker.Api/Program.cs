@@ -61,7 +61,7 @@ public class Program
 
         // Library service collections
         builder.Services.AddPageTrackerContext();
-        builder.Services.AddReadingSessions();
+        builder.Services.AddApplicationLayer();
 
         var app = builder.Build();
 
