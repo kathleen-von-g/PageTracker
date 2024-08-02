@@ -88,7 +88,7 @@ internal class BookService(ILogger<BookService> logger, IPageTrackerDbContext co
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred when deleting book {BookID}", id);
-            throw new ApplicationException($"An error occured when trying to delete \"{existingBook.Title}\".", ex);
+            throw;
         }
     }
 

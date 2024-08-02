@@ -13,6 +13,7 @@ namespace PageTracker.Api.Controllers;
 [ApiController]
 [Route("reading-session")]
 [ApiVersion("1.0")]
+[Tags("Reading Sessions")]
 public class ReadingSessionController(ILogger<ReadingSessionController> logger, IReadingSessionService readingSessionService, TimeProvider timeProvider) : ControllerBase
 {
     private const string RecordPagesError = "Could not record the number of pages you read.";
