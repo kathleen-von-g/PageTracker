@@ -1,9 +1,8 @@
 ﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PageTracker.Application.Books;
 using PageTracker.Common.Exceptions;
-using System.Net;
+using PageTracker.Domain.Models;
 
 namespace PageTracker.Api.Controllers;
 
@@ -15,6 +14,60 @@ namespace PageTracker.Api.Controllers;
 [ApiVersion("1.0")]
 public class BooksController(ILogger<BooksController> logger, IBookService bookService) : ControllerBase
 {
+    /// <summary>
+    /// Gets a book
+    /// </summary>
+    /// <param name="id">The ID of the book to get</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="200">The requested book</response>
+    /// <response code="404">Book was not found</response>
+    [HttpGet("{id}")]
+    [ProducesResponseType<Book>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> Get([FromRoute]int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var book = await bookService.GetBook(id, cancellationToken);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(book);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An uxpected error occured when trying to get book {BookID}", id);
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError,
+                title: "An unxpected error occurred when trying to get this book.");
+        }
+    }
+
+    /// <summary>
+    /// Gets all books
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="200">All books</response>
+    [HttpGet]
+    [ProducesResponseType<List<Book>>(StatusCodes.Status200OK)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> List(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var books = await bookService.GetBooks(cancellationToken);
+            return Ok(books);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An uxpected error occured when trying to get all books");
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError,
+                title: "An unxpected error occurred when trying to get all books.");
+        }
+    }
+
     /// <summary>
     /// Deletes the book if it hasn't already been started, i.e. there are no associated reading sessions
     /// </summary>

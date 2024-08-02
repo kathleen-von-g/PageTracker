@@ -50,9 +50,24 @@ public interface IBookService
 
 internal class BookService(ILogger<BookService> logger, IPageTrackerDbContext context) : IBookService
 {
+    public Task<Book?> GetBook(int id, CancellationToken cancellationToken = default)
+    {
+        return context.Books.FirstOrDefaultAsync(x => x.ID == id, cancellationToken);
+    }
+
+    public Task<List<Book>> GetBooks(CancellationToken cancellationToken = default)
+    {
+        return context.Books.OrderBy(x => x.Author).ThenBy(x => x.Title).ToListAsync(cancellationToken);
+    }
+
     public Task<Book> CreateBook(Book newBook, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Creating new book....");
+        throw new NotImplementedException();
+    }
+
+    public Task<Book> UpdateBook(int id, Book updatedBook, CancellationToken cancellationToken = default)
+    {
         throw new NotImplementedException();
     }
 
@@ -83,27 +98,12 @@ internal class BookService(ILogger<BookService> logger, IPageTrackerDbContext co
         try
         {
             context.Books.Remove(existingBook);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred when deleting book {BookID}", id);
             throw;
         }
-    }
-
-    public Task<Book?> GetBook(int id, CancellationToken cancellationToken = default)
-    {
-        return context.Books.FirstOrDefaultAsync(x => x.ID == id);
-    }
-
-    public Task<List<Book>> GetBooks(CancellationToken cancellationToken = default)
-    {
-        return context.Books.OrderBy(x => x.Author).ThenBy(x => x.Title).ToListAsync();
-    }
-
-    public Task<Book> UpdateBook(int id, Book updatedBook, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
     }
 }

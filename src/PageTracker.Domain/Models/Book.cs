@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace PageTracker.Domain.Models;
 
@@ -38,5 +39,6 @@ public class Book
     /// <summary>
     /// Reading sessions where this book was read
     /// </summary>
+    [JsonIgnore]
     public ICollection<ReadingSession> ReadingSessions { get; set; } = null!;
 }

@@ -4,6 +4,8 @@ using Swashbuckle.AspNetCore.Swagger;
 using System.Reflection;
 using PageTracker.Infrastructure;
 using PageTracker.Application;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace PageTracker.Api;
 
@@ -14,7 +16,12 @@ public class Program
     {
         // Services
         var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
+            });
+
         builder.Services.Configure<RouteOptions>(options =>
         {
             options.LowercaseUrls = true;
