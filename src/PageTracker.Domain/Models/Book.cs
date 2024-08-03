@@ -31,6 +31,7 @@ public class Book
     /// The page number the actual readable text begins on (i.e. excluding table of context, forewards etc)
     /// </summary>
     [Required]
+    [Range(1, Double.MaxValue, ErrorMessage = "Starting page must be 1 or above")]
     public required int StartingPage { get; set; }
 
     /// <summary>
@@ -38,6 +39,7 @@ public class Book
     /// If you intend to read the afterward, then that is considered ‘readable content’
     /// </summary>
     [Required]
+    [Range(1, Double.MaxValue, ErrorMessage = "Ending page must be 1 or above")]
     public required int EndingPage { get; set; }
 
     /// <summary>

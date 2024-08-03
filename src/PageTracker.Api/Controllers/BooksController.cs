@@ -75,7 +75,7 @@ public class BooksController(ILogger<BooksController> logger, IBookService bookS
     /// <param name="book">Details about the book to create. ID and Reading Session values will be ignored.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <response code="201">Sucessfully created a book</response>
-    /// <response code="400">There are validation errors</response>
+    /// <response code="400">There were validation errors</response>
     [HttpPost]
     [ProducesResponseType<Book>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -87,11 +87,60 @@ public class BooksController(ILogger<BooksController> logger, IBookService bookS
             var newBook = await bookService.CreateBook(book, cancellationToken);
             return Created(new Uri(Request.GetEncodedUrl() + "/" + newBook.ID), newBook);
         }
+        catch (ArgumentException ex)
+        {
+            logger.LogError(ex, "Validation error occurred");
+            ModelState.AddModelError(ex.ParamName ?? nameof(book), ex.Message);
+            return BadRequest(ModelState);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "An uxpected error occured when trying to create the book");
             return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError,
                 title: "An unxpected error occurred when trying to create this book.");
+        }
+    }
+
+    /// <summary>
+    /// Updates the given book. Starting page can't be edited if the book has already been started.
+    /// </summary>
+    /// <param name="id">ID of the book to update</param>
+    /// <param name="book">Book with its updated details</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="200">Book was successfully updated</response>
+    /// <response code="400">There were validation errors</response>
+    /// <response code="422">Provided update was not allowed</response>
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> Update([FromRoute]int id, Book book, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var updatedBook = await bookService.UpdateBook(id, book, cancellationToken);
+            return Ok(updatedBook);
+        }
+        catch (RecordNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError(ex, "Validation error occurred");
+            ModelState.AddModelError(ex.ParamName ?? nameof(book), ex.Message);
+            return ValidationProblem(ModelState);
+        }
+        catch (ApplicationException ex)
+        {
+            return Problem(detail: ex.Message, title: ex.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An uxpected error occured when trying to updated book {BookID}", id);
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError,
+                title: "An unxpected error occurred when trying to updated this book.");
         }
     }
 

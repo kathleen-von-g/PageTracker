@@ -180,6 +180,41 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task CreateBook_ThrowsArgumentException_IfEndingPageLessThanStartingPage()
+    {
+        // Arrange
+        var mockSet = new List<Book>().AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.Books.Returns(mockSet);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var newBook = new Book { ID = 3, Author = "Test", EndingPage = 1, StartingPage = 9, Title = "Testing", ReadingSessions = [] };
+        var actualException = await Record.ExceptionAsync(() => bookService.CreateBook(newBook));
+
+        // Assert
+        actualException.ShouldNotBeNull();
+        actualException.ShouldBeAssignableTo<ArgumentException>();        
+    }
+
+    [Fact]
+    public async Task CreateBook_EndingPage_CanBeTheSameAsStartingPage()
+    {
+        // Arrange
+        var mockSet = new List<Book>().AsQueryable().BuildMockDbSet();
+        var mockContext = Substitute.For<IPageTrackerDbContext>();
+        mockContext.Books.Returns(mockSet);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var newBook = new Book { ID = 3, Author = "Test", EndingPage = 9, StartingPage = 9, Title = "One page book", ReadingSessions = [] };
+        var createdBook = await bookService.CreateBook(newBook);
+
+        // Assert
+        mockSet.Received(1).Add(Arg.Is<Book>(b => b.ID == 0 && b.EndingPage == 9 && b.StartingPage == 9));
+    }
+
+    [Fact]
     public async Task CreateBook_ShouldIgnoreProvidedID()
     {
         // Arrange
@@ -249,4 +284,158 @@ public class BookServiceTests
         mockSet.Received(1).Add(Arg.Is<Book>(b => b.Author == "Test" && b.EndingPage == 100 && b.StartingPage == 1 && b.Title == "Testing"));
         await mockContext.Received(1).SaveChangesAsync();
     }
+
+    [Fact]
+    public async Task UpdateBook_ThrowsRecordNotFoundException_IfDoesntExist()
+    {
+        // Arrange
+        var books = new List<Book> { new Book { ID = 1, Author = "Test", EndingPage = 100, StartingPage = 1, Title = "Testing", ReadingSessions = [] } };
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var actualException = await Record.ExceptionAsync(() => bookService.UpdateBook(2, new Book { Author = "Updated Author", StartingPage = 2, EndingPage = 200, Title = "Updated Title", ReadingSessions = [] }));
+
+        // Assert
+        actualException.ShouldNotBeNull();
+        actualException.ShouldBeAssignableTo<RecordNotFoundException>();
+        actualException.Data["BookID"].ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task UpdateBack_ThrowsApplicationException_IfEditingStartPage_IfAlreadyStarted()
+    {
+        // Arrange
+        var books = new List<Book> { new Book
+        {
+            ID = 1,
+            Author = "Test",
+            EndingPage = 100,
+            StartingPage = 1,
+            Title = "Testing",
+            ReadingSessions = new List<ReadingSession> {
+                new ReadingSession
+                {
+                    DateOfSession = DateTimeOffset.Now.AddDays(-1),
+                    NumberOfPages =  10,
+                    PageFinishedOn = 11,
+                    BookID = 1,
+                    ID = 1
+                }
+            }
+        }};
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var actualException = await Record.ExceptionAsync(() => bookService.UpdateBook(1, new Book { Author = "Test", StartingPage = 2, EndingPage = 100, Title = "Testing", ReadingSessions = [] }));
+
+        // Assert
+        actualException.ShouldNotBeNull();
+        actualException.ShouldBeAssignableTo<PageTracker.Common.Exceptions.ApplicationException>();
+        actualException.Data["BookID"].ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task UpdateBook_ShouldIgnoreProvidedBookID()
+    {
+        // Arrange
+        var book1 = new Book { ID = 1, Author = "Test", EndingPage = 100, StartingPage = 1, Title = "Testing", ReadingSessions = [] };
+        var book2 = new Book { ID = 2, Author = "Book 2 Author", EndingPage = 378, StartingPage = 9, Title = "Book 2 Title", ReadingSessions = [] };
+        var books = new List<Book> { book1, book2 };
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        // Update book 1
+        var updatedBook = await bookService.UpdateBook(1, new Book { ID = 2, Author = "Updated Author", StartingPage = 2, EndingPage = 200, Title = "Updated Title", ReadingSessions = [] });
+
+        // Assert
+        updatedBook.ID.ShouldBe(1);
+        book1.Author.ShouldBe("Updated Author");
+        book2.Author.ShouldBe("Book 2 Author");
+    }
+
+    [Fact]
+    public async Task UpdateBook_ShouldIgnoreProvidedReadingSessions()
+    {
+        // Arrange
+        var books = new List<Book> { new Book { ID = 1, Author = "Test", StartingPage = 1, EndingPage = 100, Title = "Testing", ReadingSessions = new List<ReadingSession> { DummyReadingSession(1) } } };
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var bookDetails = new Book { ID = 1, Author = "Updated Author", StartingPage = 1, EndingPage = 100, Title = "Updated Title", ReadingSessions = new List<ReadingSession> { DummyReadingSession(2) } };
+        await bookService.UpdateBook(1, bookDetails);
+
+        // Assert
+        books.First().ReadingSessions.First().ID.ShouldBe(1);
+        books.First().ReadingSessions.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task UpdateBook_ExistingBook_IsUpdated()
+    {
+        // Arrange
+        var book1 = new Book { ID = 1, Author = "Test", EndingPage = 100, StartingPage = 1, Title = "Testing", ReadingSessions = [] };
+        var books = new List<Book> { book1 };
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        // Update book 1
+        var updatedBook = await bookService.UpdateBook(1, new Book { ID = 1, Author = "Updated Author", StartingPage = 2, EndingPage = 200, Title = "Updated Title", ReadingSessions = [] });
+
+        // Assert
+        updatedBook.ID.ShouldBe(1);
+        book1.ID.ShouldBe(1);
+        book1.Author.ShouldBe("Updated Author");
+        book1.Title.ShouldBe("Updated Title");
+        book1.StartingPage.ShouldBe(2);
+        book1.EndingPage.ShouldBe(200);
+        book1.ReadingSessions.ShouldBeEmpty();
+        await mockContext.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task UpdateBook_ThrowsArgumentException_IfEndingPageLessThanStartingPage()
+    {
+        // Arrange
+        var books = new List<Book> { new Book { ID = 1, Author = "Test", StartingPage = 10, EndingPage = 100, Title = "Testing", ReadingSessions = [] } };
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var bookDetails = new Book { ID = 1, Author = "Updated Author", StartingPage = 10, EndingPage = 9, Title = "Updated Title", ReadingSessions = [] };
+        var actualException = await Record.ExceptionAsync(() => bookService.UpdateBook(1, bookDetails));
+
+        // Assert
+        actualException.ShouldNotBeNull();
+        actualException.ShouldBeAssignableTo<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task UpdateBook_EndingPage_CanBeTheSameAsStartingPage()
+    {
+        // Arrange
+        var books = new List<Book> { new Book { ID = 1, Author = "Test", StartingPage = 10, EndingPage = 100, Title = "Testing", ReadingSessions = [] } };
+        var mockContext = GetMockContext(books);
+        var bookService = new BookService(_logger, mockContext);
+
+        // Act
+        var bookDetails = new Book { ID = 1, Author = "Updated Author", StartingPage = 10, EndingPage = 10, Title = "Updated Title", ReadingSessions = [] };
+        await bookService.UpdateBook(1, bookDetails);
+
+        // Assert
+        books.First().StartingPage.ShouldBe(10);
+        books.First().EndingPage.ShouldBe(10);
+    }
+
+    private ReadingSession DummyReadingSession(int id) => new ReadingSession
+    {
+        ID = id,
+        DateOfSession = DateTimeOffset.Now.AddDays(-1),
+        NumberOfPages = 10,
+        PageFinishedOn = 1
+    };
 }
