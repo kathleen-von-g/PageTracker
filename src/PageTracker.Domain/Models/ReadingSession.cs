@@ -31,4 +31,14 @@ public class ReadingSession
     /// i.e. "I got up to page 45 today", 45 being the page they finished on
     /// </summary> 
     public required int PageFinishedOn { get; set; }
+
+    /// <summary>
+    /// The ID of the book that was read in this session
+    /// </summary>
+    public int? BookID { get; set; }
+
+    /// <summary>
+    /// The book that was read in this session
+    /// </summary>
+    public virtual Book? Book { get; set; }
 }

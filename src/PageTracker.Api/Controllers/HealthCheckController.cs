@@ -11,6 +11,7 @@ namespace PageTracker.Api.Controllers;
 [ApiController]
 [Route("[controller]")]
 [ApiVersion("1.0")]
+[Tags("Health Check")]
 public class HealthCheckController : ControllerBase
 {
     /// <summary>

@@ -5,6 +5,11 @@ namespace PageTracker.Infrastructure.Persistence;
 public interface IPageTrackerDbContext
 {
     /// <summary>
+    /// All saved books
+    /// </summary>
+    DbSet<Book> Books { get; }
+
+    /// <summary>
     /// All recorded ReadingSessions
     /// </summary>
     DbSet<ReadingSession> ReadingSessions { get; }
