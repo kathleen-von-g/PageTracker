@@ -1,5 +1,5 @@
 import { Stack, Center } from '@mantine/core';
-import TodaysPages from './components/feature/TodaysPages';
+import TodaysPages from './TodaysPages';
 
 function PageLog() {
 

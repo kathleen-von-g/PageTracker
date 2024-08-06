@@ -1,7 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App';
+import Books from './components/feature/books/Books';
+import PageLog from './components/feature/pagelog/PageLog';
 import { MantineProvider, createTheme } from '@mantine/core';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import '@mantine/core/styles.css';
 import './assets/styles/uicons-regular-straight.css'
@@ -20,10 +23,27 @@ const theme = createTheme({
   }
 });
 
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      {
+        index: true,
+        element: <PageLog />
+      },
+      {
+        path: "/books",
+        element: <Books /> 
+      }
+    ]
+  }
+]);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <MantineProvider theme={theme} defaultColorScheme="light">
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>
   </MantineProvider>,
 )

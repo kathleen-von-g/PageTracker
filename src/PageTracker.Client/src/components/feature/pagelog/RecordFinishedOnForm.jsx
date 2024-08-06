@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button, TextInput, Flex, Text } from "@mantine/core";
-import ErrorAlert from '../common/ErrorAlert';
+import ErrorAlert from '../../common/ErrorAlert';
 
 function RecordFinishedOnForm({ onSubmit, error, todaysPages }) {
   const [formData, setFormData] = useState({ pageNumber: '' });

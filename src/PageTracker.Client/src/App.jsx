@@ -1,9 +1,9 @@
 import { AppShell } from '@mantine/core';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import PageLog from './PageLog'
 import Navbar from './components/layout/Navbar';
 import { useDisclosure } from '@mantine/hooks';
+import { Outlet } from 'react-router-dom';
 
 const title = "Page Tracker";
 
@@ -18,10 +18,10 @@ function App() {
       navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: true, mobile: !opened } }}>
 
       <Header title={title} opened={opened} toggle={toggle} />
-      <Navbar />
+      <Navbar toggle={toggle} />
 
       <AppShell.Main>
-        <PageLog />
+        <Outlet />
       </AppShell.Main>
 
       <Footer />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button, TextInput, Flex, Text } from "@mantine/core";
-import ErrorAlert from '../common/ErrorAlert';
+import ErrorAlert from '../../common/ErrorAlert';
 
 // onSubmit - Function that accepts a numeric text input
 function RecordPagesForm({ onSubmit, error, todaysPages }) {
