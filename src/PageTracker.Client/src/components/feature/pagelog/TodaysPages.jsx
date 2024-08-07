@@ -15,7 +15,7 @@ function TodaysPages() {
     fetchNumPagesRead();
   }, []);
 
-  // Mock the API call
+
   const fetchNumPagesRead = () => {
     setError('');
     fetch(`${API_URL}/pages`)
